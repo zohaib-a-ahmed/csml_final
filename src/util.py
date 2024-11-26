@@ -2,7 +2,7 @@ import torch
 from pathlib import Path
 from .definitions import ConvolutionalNN, VisionTransformer, LinearExample
 
-DIR = Path("models")
+DIR = Path(__file__).resolve()
 MODEL_FACTORY = {
     "cnn": ConvolutionalNN,
     "vision": VisionTransformer,

@@ -1,7 +1,8 @@
 import os
 import imagehash
 from pathlib import Path
-from typing import List, Tuple, Union
+from sklearn.model_selection import train_test_split
+from typing import Counter, List, Tuple, Union
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 from torchvision import transforms
@@ -122,18 +123,12 @@ def gather_data(dataset_paths: List[str]) -> Tuple[List[Tuple[Image.Image, str]]
     
     print(f"Loaded {len(combined_data)} images from {len(dataset_paths)} sources. Removed {num_duplicates} duplicates.")
 
-    # Shuffle the combined data to ensure random split
-    random.shuffle(combined_data)
+    # Split the combined data into training and testing sets (90/10 split)
+    train_data, test_data = train_test_split(combined_data, test_size=0.1, random_state=42)
+    # Split the training data into training and validation sets (80/20 split)
+    train_set, val_set = train_test_split(train_data, test_size=0.2, random_state=42)
 
-    # Split the combined data into training, validation, and testing sets (80/10/10 split)
-    total_data = len(combined_data)
-    train_size = int(0.8 * total_data)  # 80% for training
-    val_size = int(0.1 * total_data)    # 10% for validation
-    train_set = combined_data[:train_size]  # Training data
-    val_set = combined_data[train_size:train_size + val_size]  # Validation data
-    test_set = combined_data[train_size + val_size:]  # Test data
-
-    return train_set, val_set, test_set  # Return the three lists
+    return train_set, val_set, test_data  
 
 def load_data(
     dataset_paths: List[str],
@@ -157,7 +152,7 @@ def load_data(
     Returns:
         DataLoader or TumorDataset
     """
-    dataset_paths = ['data/dataset1', 'data/dataset2']
+    dataset_paths = ['csml_final/data/dataset1', 'csml_final/data/dataset2']
 
     data = gather_data(dataset_paths)
     
@@ -180,17 +175,43 @@ def load_data(
 
     return train_loader, val_loader, test
 
+def print_class_distribution(train_set, val_set, test_set):
+    """
+    Prints the class distribution for training, validation, and testing datasets.
+
+    Args:
+        train_set (List[Tuple[Image.Image, str]]): Training dataset.
+        val_set (List[Tuple[Image.Image, str]]): Validation dataset.
+        test_set (List[Tuple[Image.Image, str]]): Testing dataset.
+    """
+    # Count the occurrences of each class in the datasets
+    train_labels = [label for _, label in train_set]
+    val_labels = [label for _, label in val_set]
+    test_labels = [label for _, label in test_set]
+
+    train_distribution = Counter(train_labels)
+    val_distribution = Counter(val_labels)
+    test_distribution = Counter(test_labels)
+
+    # Print the distributions
+    print("Training Set Class Distribution:")
+    for label, count in train_distribution.items():
+        print(f"{label}: {count}")
+
+    print("\nValidation Set Class Distribution:")
+    for label, count in val_distribution.items():
+        print(f"{label}: {count}")
+
+    print("\nTesting Set Class Distribution:")
+    for label, count in test_distribution.items():
+        print(f"{label}: {count}")
+
+
 if __name__ == "__main__":
     dataset_paths = ['data/dataset1', 'data/dataset2']
     # gathered_data = gather_data(dataset_paths)
     # training, val, test = gathered_data
-    # print(f"{len(training)=}, {len(val)=}, {len(test)=}")
-    # print(f"TOTAL:{len(training) + len(val) + len(test)}")
-
-    train, val, test = load_data(dataset_paths=[], batch_size=1, shuffle=True)
-    for batch in train:
-        img, label = batch
-        print(img)
-        print(img.shape)
-        break
     
+        # Example usage after calling gather_data
+    train_set, val_set, test_set = gather_data(dataset_paths)  # Replace with your actual dataset paths
+    print_class_distribution(train_set, val_set, test_set)

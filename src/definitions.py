@@ -47,7 +47,8 @@ class ConvolutionalNN(nn.Module):
 
         self.resblock1 = ResidualBlock(64, 128, 2)
         self.resblock2 = ResidualBlock(128, 256, 2)
-        self.resblock3 = ResidualBlock(256, 512, 2)
+        self.resblock3 = ResidualBlock(256, 256, 1)
+        self.resblock4 = ResidualBlock(256, 512, 2)
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512, num_classes)
@@ -72,6 +73,7 @@ class ConvolutionalNN(nn.Module):
         x = self.resblock1(x)
         x = self.resblock2(x)
         x = self.resblock3(x)
+        x = self.resblock4(x)
 
         x = self.avg_pool(x)
         x = torch.flatten(x, 1)
