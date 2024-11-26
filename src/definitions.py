@@ -1,7 +1,6 @@
 import torch
 from .components import *
 
-import torch
 
 class LinearExample(torch.nn.Module):
     def __init__(self, h: int = 224, w: int = 224, num_classes: int = 4):
@@ -32,20 +31,27 @@ class LinearExample(torch.nn.Module):
         x = x.view(x.size(0), -1)  # Flatten to (b, h*w)
         return self.linear(x)
 
-
-class ConvolutionalNN(torch.nn.Module):
-
+class ConvolutionalNN(nn.Module):
     def __init__(self, num_classes: int = 4):
-        super().__init__()
+        super(ConvolutionalNN, self).__init__()
         """
         A convolutional network for image classification.
 
         Args:
             num_classes: number of output class probabilities
         """
-        # define layers
-        pass
-    
+
+        self.initial_conv = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.initial_bn = nn.BatchNorm2d(64)
+        self.initial_pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+        self.resblock1 = ResidualBlock(64, 128, 2)
+        self.resblock2 = ResidualBlock(128, 256, 2)
+        self.resblock3 = ResidualBlock(256, 512, 2)
+
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512, num_classes)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
@@ -54,7 +60,24 @@ class ConvolutionalNN(torch.nn.Module):
         Returns:
             tensor (b, num_classes) classifications
         """
-        pass
+
+        # # Normalize the input tensor
+        # mean = torch.tensor([0.5]).view(1, 1, 1, 1).to(x.device)  # Mean for grayscale
+        # std = torch.tensor([0.5]).view(1, 1, 1, 1).to(x.device)    # Std for grayscale
+        # x = (x - mean) / std  # Normalize the input
+
+        x = F.relu(self.initial_bn(self.initial_conv(x)))
+        x = self.initial_pool(x)
+
+        x = self.resblock1(x)
+        x = self.resblock2(x)
+        x = self.resblock3(x)
+
+        x = self.avg_pool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+
+        return x
 
 class VisionTransformer(torch.nn.Module):
 

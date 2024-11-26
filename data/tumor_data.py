@@ -34,15 +34,16 @@ class TumorDataset(Dataset):
             xform = transforms.Compose([
                 transforms.Resize(image_size),  # Resize the image
                 transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5], std=[0.5]),
             ])
         elif transform_pipeline == "aug":
             xform = transforms.Compose([
                 transforms.Resize(image_size),  # Resize the image
                 transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
-                transforms.ColorJitter(0.9, 0.9, 0.9, 0.1),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5], std=[0.5]),
             ])
 
         if xform is None:
@@ -119,9 +120,8 @@ def gather_data(dataset_paths: List[str]) -> Tuple[List[Tuple[Image.Image, str]]
                             print(f"Error loading image {image_path}: {e}")
 
     
-    print(f"Loaded {len(combined_data)} images from {len(dataset_paths)} sources.")
-    print(f"Duplicates found: {num_duplicates}")
-    
+    print(f"Loaded {len(combined_data)} images from {len(dataset_paths)} sources. Removed {num_duplicates} duplicates.")
+
     # Shuffle the combined data to ensure random split
     random.shuffle(combined_data)
 
@@ -182,7 +182,15 @@ def load_data(
 
 if __name__ == "__main__":
     dataset_paths = ['data/dataset1', 'data/dataset2']
-    gathered_data = gather_data(dataset_paths)
-    training, val, test = gathered_data
-    print(f"{len(training)=}, {len(val)=}, {len(test)=}")
-    print(f"TOTAL:{len(training) + len(val) + len(test)}")
+    # gathered_data = gather_data(dataset_paths)
+    # training, val, test = gathered_data
+    # print(f"{len(training)=}, {len(val)=}, {len(test)=}")
+    # print(f"TOTAL:{len(training) + len(val) + len(test)}")
+
+    train, val, test = load_data(dataset_paths=[], batch_size=1, shuffle=True)
+    for batch in train:
+        img, label = batch
+        print(img)
+        print(img.shape)
+        break
+    

@@ -30,15 +30,11 @@ def train(
         print("GPU not available, using CPU")
         device = torch.device("cpu")
 
-    # set random seed so each run is deterministic
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    # directory with timestamp to save tensorboard logs and model checkpoints
     log_dir = Path(exp_dir) / f"{model_name}_{datetime.now().strftime('%m%d_%H%M%S')}"
-    logger = tb.SummaryWriter(log_dir)
 
-    # note: the grader uses default kwargs, you'll have to bake them in for the final submission
     model = load_model(model_name, **kwargs)
     model = model.to(device)
     model.train()
@@ -47,7 +43,7 @@ def train(
     train_data, val_data, test_data = load_data(dataset_paths=data_sources, shuffle=True, batch_size=batch_size, num_workers=2)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
-    scheduler = StepLR(optimizer, step_size=10, gamma=.8)
+    scheduler = StepLR(optimizer, step_size=5, gamma=.8)
     loss = torch.nn.CrossEntropyLoss()
 
     global_step = 0
@@ -82,7 +78,6 @@ def train(
         
         scheduler.step()
 
-        # disable gradient computation and switch to evaluation mode
         with torch.inference_mode():
             model.eval()
 
@@ -96,7 +91,6 @@ def train(
                 val_metrics = compute_metrics(val_pred, label, num_classes=4)  # Assuming 4 classes
                 metrics['val_acc'].append(val_metrics['accuracy'])  # Store validation accuracy
 
-
         # Print metrics for the first, last, and every 5th epoch for accuracy and loss
         if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 5 == 0:
             train_accuracy = np.mean(metrics['train_acc'])  # Average training accuracy for the epoch
@@ -106,14 +100,9 @@ def train(
                   f"Val Accuracy: {val_metrics['accuracy']:.4f}, "
                   f"Val Loss: {loss_val / len(val_data):.4f}")
 
-
-    # save and overwrite the model in the root directory for grading
-    save_model(model)
-
-    # save a copy of model weights in the log directory
+    #save_model(model)
     torch.save(model.state_dict(), log_dir / f"{model_name}.th")
     print(f"Model saved to {log_dir / f'{model_name}.th'}")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
