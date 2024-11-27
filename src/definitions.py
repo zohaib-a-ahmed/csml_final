@@ -1,4 +1,5 @@
 import torch
+from torchvision.models import vit_b_16
 from .components import *
 
 
@@ -83,7 +84,7 @@ class ConvolutionalNN(nn.Module):
 
 class VisionTransformer(torch.nn.Module):
 
-    def __init__(self, img_size: int = 224, patch_size: int = 16, embed_dim: int = 768, num_heads: int = 12, num_layers: int = 4, num_classes: int = 4):
+    def __init__(self, num_classes: int = 4):
         super().__init__()
         """
         A vision transformer network for image classification.
@@ -91,12 +92,8 @@ class VisionTransformer(torch.nn.Module):
         Args:
             num_classes: number of output class probabilities
         """
-        self.patch_embedding = PatchEmbedding(img_size, patch_size, embed_dim)
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        self.transformer_layers = nn.ModuleList(
-            [TransformerLayer(embed_dim, num_heads) for _ in range(num_layers)]
-        )
-        self.classifier = nn.Linear(embed_dim, num_classes)
+        self.model = vit_b_16() # not pretrained
+        self.model.heads.head = nn.Linear(self.model.heads.head.in_features, num_classes)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -106,20 +103,4 @@ class VisionTransformer(torch.nn.Module):
         Returns:
             tensor (b, num_classes) classifications
         """
-        # Embed patches
-        x = self.patch_embedding(x)  # Shape: (batch_size, num_patches, embed_dim)
-        
-        # Prepend the classification token
-        batch_size = x.shape[0]
-        cls_tokens = self.cls_token.expand(batch_size, -1, -1)  # Shape: (batch_size, 1, embed_dim)
-        x = torch.cat((cls_tokens, x), dim=1)  # Shape: (batch_size, num_patches + 1, embed_dim)
-
-        # Pass through transformer layers
-        for layer in self.transformer_layers:
-            x = layer(x)
-
-        # Use the output corresponding to the CLS token for classification
-        cls_output = x[:, 0]  # Shape: (batch_size, embed_dim)
-        x = self.classifier(cls_output)  # Shape: (batch_size, num_classes)
-
-        return x
+        pass
