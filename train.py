@@ -7,16 +7,16 @@ import torch
 import torch.utils.tensorboard as tb
 from torch.optim.lr_scheduler import StepLR
 
-from src.util import load_model, save_model
-from data.tumor_data import load_data
-from src.metrics import *
+from .src.util import load_model, save_model
+from .data.tumor_data import load_data
+from .src.metrics import *
 
 def train(
     exp_dir: str = "logs",
     model_name: str = "linear",
     num_epoch: int = 100,
     lr: float = 1e-3,
-    batch_size: int = 128,
+    batch_size: int = 64,
     seed: int = 2024,
     **kwargs,
 ):
@@ -40,7 +40,7 @@ def train(
     model.train()
 
     data_sources = ["data/dataset1", "data/dataset2"]
-    train_data, val_data, test_data = load_data(dataset_paths=data_sources, shuffle=True, batch_size=batch_size, num_workers=2)
+    train_data, val_data, test_data = load_data(dataset_paths=data_sources, shuffle=True, batch_size=batch_size, num_workers=4)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     scheduler = StepLR(optimizer, step_size=5, gamma=.8)
@@ -63,7 +63,7 @@ def train(
             logits_pred = model(img)
 
             loss_val = loss(logits_pred, label)
-        
+
             optimizer.zero_grad()
             loss_val.backward()
             optimizer.step()
@@ -100,9 +100,9 @@ def train(
                   f"Val Accuracy: {val_metrics['accuracy']:.4f}, "
                   f"Val Loss: {loss_val / len(val_data):.4f}")
 
-    #save_model(model)
-    torch.save(model.state_dict(), log_dir / f"{model_name}.th")
-    print(f"Model saved to {log_dir / f'{model_name}.th'}")
+    save_model(model)
+    #torch.save(model.state_dict(), log_dir / f"{model_name}.th")
+    #print(f"Model saved to {log_dir / f'{model_name}.th'}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

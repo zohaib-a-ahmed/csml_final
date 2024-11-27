@@ -152,7 +152,7 @@ def load_data(
     Returns:
         DataLoader or TumorDataset
     """
-    dataset_paths = ['csml_final/data/dataset1', 'csml_final/data/dataset2']
+    dataset_paths = ['data/dataset1', 'data/dataset2']
 
     data = gather_data(dataset_paths)
     

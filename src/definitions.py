@@ -82,8 +82,7 @@ class ConvolutionalNN(nn.Module):
 
         return x
 
-class VisionTransformer(torch.nn.Module):
-
+class VisionTransformer(nn.Module):
     def __init__(self, num_classes: int = 4):
         super().__init__()
         """
@@ -92,9 +91,12 @@ class VisionTransformer(torch.nn.Module):
         Args:
             num_classes: number of output class probabilities
         """
-        self.model = vit_b_16() # not pretrained
+        # Load a pretrained Vision Transformer model
+        self.model = vit_b_16()  # Load pretrained weights
+        
+        # Modify the classifier head to match the number of classes
         self.model.heads.head = nn.Linear(self.model.heads.head.in_features, num_classes)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
@@ -103,4 +105,8 @@ class VisionTransformer(torch.nn.Module):
         Returns:
             tensor (b, num_classes) classifications
         """
-        pass
+        # Since the pretrained model expects 3 channels, we need to repeat the grayscale channel
+        x = x.repeat(1, 3, 1, 1)  # Convert (b, 1, h, w) to (b, 3, h, w)
+        
+        # Forward pass through the model
+        return self.model(x)
