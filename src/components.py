@@ -24,3 +24,43 @@ class ResidualBlock(nn.Module):
         out += self.shortcut(x) 
         out = F.relu(out)
         return out
+    
+class PatchEmbedding(nn.Module):
+    def __init__(self, img_size, patch_size, embed_dim):
+        super().__init__()
+        self.patch_size = patch_size
+        self.num_patches = (img_size // patch_size) ** 2
+        # Adjusting input channels to 1 for grayscale images
+        self.proj = nn.Conv2d(1, embed_dim, kernel_size=patch_size, stride=patch_size)
+
+    def forward(self, x):
+        # x shape: (batch_size, 1, height, width)
+        x = self.proj(x)  # shape: (batch_size, embed_dim, num_patches_h, num_patches_w)
+        x = x.flatten(2)  # shape: (batch_size, embed_dim, num_patches)
+        x = x.transpose(1, 2)  # shape: (batch_size, num_patches, embed_dim)
+        return x
+
+class TransformerLayer(nn.Module):
+    def __init__(self, embed_dim, num_heads):
+        super().__init__()
+        self.self_att = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+        self.feed_forward = nn.Sequential(
+            nn.Linear(embed_dim, 4 * embed_dim),  # First linear layer
+            nn.ReLU(),                             # Activation
+            nn.Linear(4 * embed_dim, embed_dim)   # Second linear layer
+        )
+        self.norm1 = nn.LayerNorm(embed_dim)      # Layer normalization after attention
+        self.norm2 = nn.LayerNorm(embed_dim)      # Layer normalization after feedforward
+        self.dropout1 = nn.Dropout(0.1)           # Dropout after attention
+        self.dropout2 = nn.Dropout(0.1)           # Dropout after feedforward
+
+    def forward(self, x):
+        # Self-attention with residual connection
+        attn_output, _ = self.self_att(x, x, x)  # x is (batch_size, num_patches, embed_dim)
+        x = self.norm1(x + self.dropout1(attn_output))  # Add & normalize
+
+        # Feedforward network with residual connection
+        ff_output = self.feed_forward(x)
+        x = self.norm2(x + self.dropout2(ff_output))  # Add & normalize
+
+        return x
