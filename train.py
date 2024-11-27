@@ -40,7 +40,8 @@ def train(
     model.train()
 
     data_sources = ["data/dataset1", "data/dataset2"]
-    train_data, val_data, test_data = load_data(dataset_paths=data_sources, shuffle=True, batch_size=batch_size, num_workers=4)
+    train_data, val_data, test_data = load_data(dataset_paths=data_sources, 
+    shuffle=True, batch_size=batch_size, num_workers=0, transform_pipeline='aug')
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     scheduler = StepLR(optimizer, step_size=5, gamma=.8)
@@ -48,6 +49,7 @@ def train(
 
     global_step = 0
     metrics = {'train_acc': [], 'val_acc': []}
+    best_val_accuracy = 0
 
     # training loops
     for epoch in range(num_epoch):
@@ -88,16 +90,22 @@ def train(
                 loss_val = loss(val_pred, label)
                 
                 # Calculate validation accuracy
-                val_metrics = compute_metrics(val_pred, label, num_classes=4)  # Assuming 4 classes
-                metrics['val_acc'].append(val_metrics['accuracy'])  # Store validation accuracy
+                predictions = torch.argmax(val_pred, dim=1)  # Shape: [batch_size]
+                accuracy = calculate_accuracy(predictions, label)  # Calculate accuracy
+                metrics['val_acc'].append(accuracy)  # Store accuracy for this batch
+
+        train_accuracy = np.mean(metrics['train_acc'])  # Average training accuracy for the epoch
+        val_accuracy = np.mean(metrics['val_acc'])  # Average validation accuracy for the epoch
+        if val_accuracy > best_val_accuracy:
+            print(f"New best achieved: {val_accuracy}.")
+            torch.save(model.state_dict(), f"best_{model_name}.th")
+            print(f"Model saved to {f'best_{model_name}.th'}")
 
         # Print metrics for the first, last, and every 5th epoch for accuracy and loss
         if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 5 == 0:
-            train_accuracy = np.mean(metrics['train_acc'])  # Average training accuracy for the epoch
-            train_accuracy = np.mean(metrics['val_acc'])  # Average training accuracy for the epoch
             print(f"Epoch {epoch + 1:2d} / {num_epoch:2d}: "
                   f"Train Accuracy: {train_accuracy:.4f}, "
-                  f"Val Accuracy: {val_metrics['accuracy']:.4f}, "
+                  f"Val Accuracy: {val_accuracy:.4f}, "
                   f"Val Loss: {loss_val / len(val_data):.4f}")
 
     save_model(model)

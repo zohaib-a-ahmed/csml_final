@@ -208,7 +208,7 @@ def print_class_distribution(train_set, val_set, test_set):
 
 
 if __name__ == "__main__":
-    dataset_paths = ['data/dataset1', 'data/dataset2']
+    dataset_paths = ['csml_final/data/dataset1', 'csml_final/data/dataset2']
     # gathered_data = gather_data(dataset_paths)
     # training, val, test = gathered_data
     
