@@ -44,7 +44,7 @@ def train(
     shuffle=True, batch_size=batch_size, num_workers=0, transform_pipeline='aug')
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
-    scheduler = StepLR(optimizer, step_size=5, gamma=.8)
+    scheduler = StepLR(optimizer, step_size=15, gamma=.8)
     loss = torch.nn.CrossEntropyLoss()
 
     global_step = 0
@@ -97,18 +97,18 @@ def train(
         train_accuracy = np.mean(metrics['train_acc'])  # Average training accuracy for the epoch
         val_accuracy = np.mean(metrics['val_acc'])  # Average validation accuracy for the epoch
         if val_accuracy > best_val_accuracy:
-            print(f"New best achieved: {val_accuracy}.")
+            best_val_accuracy = val_accuracy
             torch.save(model.state_dict(), f"best_{model_name}.th")
-            print(f"Model saved to {f'best_{model_name}.th'}")
 
         # Print metrics for the first, last, and every 5th epoch for accuracy and loss
-        if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 5 == 0:
+        if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch + 1:2d} / {num_epoch:2d}: "
                   f"Train Accuracy: {train_accuracy:.4f}, "
                   f"Val Accuracy: {val_accuracy:.4f}, "
                   f"Val Loss: {loss_val / len(val_data):.4f}")
 
     save_model(model)
+    print(f"Best model achieved: {best_val_accuracy}.")
     #torch.save(model.state_dict(), log_dir / f"{model_name}.th")
     #print(f"Model saved to {log_dir / f'{model_name}.th'}")
 
