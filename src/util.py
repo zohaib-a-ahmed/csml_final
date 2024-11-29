@@ -1,6 +1,6 @@
 import torch
 from pathlib import Path
-from .definitions import ConvolutionalNN, LinearExample, DenseNetModel, ResNetModel, DenseNetRawModel, ResNetRawModel
+from .definitions import ConvolutionalNN, LinearExample, DenseNetModel, ResNetModel, DenseNetRawModel, ResNetRawModel, VGG16Model, VGG16RawModel
 
 DIR = Path(__file__).resolve()
 MODEL_FACTORY = {
@@ -9,7 +9,9 @@ MODEL_FACTORY = {
     "dense": DenseNetModel,
     "res": ResNetModel,
     "dense_raw": DenseNetRawModel,
-    "res_raw": ResNetRawModel
+    "res_raw": ResNetRawModel,
+    "vgg": VGG16Model,
+    "vgg_raw": VGG16RawModel
 }
 
 def load_model(

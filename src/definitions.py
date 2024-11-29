@@ -1,5 +1,6 @@
 import torch
-from torchvision.models import densenet121, resnet50, DenseNet121_Weights, ResNet50_Weights
+from torchvision.models import densenet121, resnet50, vgg16_bn
+from torchvision.models import DenseNet121_Weights, ResNet50_Weights, VGG16_BN_Weights
 from .components import *
 
 
@@ -159,7 +160,7 @@ class DenseNetRawModel(nn.Module):
 
 class ResNetRawModel(nn.Module):
     def __init__(self, num_classes: int = 4):
-        super(ResNetModel, self).__init__()
+        super(ResNetRawModel, self).__init__()
         """
         A pretrained ResNet model for image classification.
 
@@ -167,6 +168,52 @@ class ResNetRawModel(nn.Module):
             num_classes: number of output class probabilities
         """
         self.model = resnet50()
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: tensor (b, 1, h, w) image
+
+        Returns:
+            tensor (b, num_classes) classifications
+        """
+        x = x.repeat(1, 3, 1, 1)
+        return self.model(x)
+    
+class VGG16Model(nn.Module):
+    def __init__(self, num_classes: int = 4):
+        super(VGG16Model, self).__init__()
+        """
+        A pretrained ResNet model for image classification.
+
+        Args:
+            num_classes: number of output class probabilities
+        """
+        self.model = vgg16_bn(weights = VGG16_BN_Weights)
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: tensor (b, 1, h, w) image
+
+        Returns:
+            tensor (b, num_classes) classifications
+        """
+        x = x.repeat(1, 3, 1, 1)
+        return self.model(x)
+
+class VGG16RawModel(nn.Module):
+    def __init__(self, num_classes: int = 4):
+        super(VGG16RawModel, self).__init__()
+        """
+        A pretrained ResNet model for image classification.
+
+        Args:
+            num_classes: number of output class probabilities
+        """
+        self.model = vgg16_bn()
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
