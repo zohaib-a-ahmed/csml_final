@@ -191,7 +191,7 @@ class VGG16Model(nn.Module):
             num_classes: number of output class probabilities
         """
         self.model = vgg16_bn(weights = VGG16_BN_Weights)
-        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
+        self.model.classifier[6] = nn.Linear(self.model.classifier[6].in_features, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -214,7 +214,7 @@ class VGG16RawModel(nn.Module):
             num_classes: number of output class probabilities
         """
         self.model = vgg16_bn()
-        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
+        self.model.classifier[6] = nn.Linear(self.model.classifier[6].in_features, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
