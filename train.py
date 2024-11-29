@@ -33,7 +33,7 @@ def train(
     model = model.to(device)
     model.train()
 
-    data_sources = ["csml_final/data/dataset1", "csml_final/data/dataset2"]
+    data_sources = ["data/dataset1", "data/dataset2"]
     train_data, val_data = load_training_data(dataset_paths=data_sources, 
     shuffle=True, batch_size=batch_size, num_workers=0, transform_pipeline='aug')
 

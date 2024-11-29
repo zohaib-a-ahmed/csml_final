@@ -1,5 +1,5 @@
 import torch
-from torchvision.models import densenet121, resnet50
+from torchvision.models import densenet121, resnet50, DenseNet121_Weights, ResNet50_Weights
 from .components import *
 
 
@@ -92,17 +92,18 @@ class DenseNetModel(nn.Module):
         Args:
             num_classes: number of output class probabilities
         """
-        self.model = densenet121(pretrained=True)
+        self.model = densenet121(weights = DenseNet121_Weights.DEFAULT)
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)  
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: tensor (b, 3, h, w) image
+            x: tensor (b, 1, h, w) image
 
         Returns:
             tensor (b, num_classes) classifications
         """
+        x = x.repeat(1, 3, 1, 1)
         return self.model(x)
     
 class ResNetModel(nn.Module):
@@ -114,15 +115,16 @@ class ResNetModel(nn.Module):
         Args:
             num_classes: number of output class probabilities
         """
-        self.model = resnet50(pretrained=True)
+        self.model = resnet50(weights = ResNet50_Weights.DEFAULT)
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: tensor (b, 3, h, w) image
+            x: tensor (b, 1, h, w) image
 
         Returns:
             tensor (b, num_classes) classifications
         """
+        x = x.repeat(1, 3, 1, 1)
         return self.model(x)
