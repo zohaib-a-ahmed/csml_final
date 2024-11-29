@@ -1,14 +1,10 @@
 import argparse
-from datetime import datetime
-from pathlib import Path
-
 import numpy as np
 import torch
-import torch.utils.tensorboard as tb
 from torch.optim.lr_scheduler import StepLR
 
 from .src.util import load_model, save_model
-from .data.tumor_data import load_data
+from .data.tumor_data import load_training_data
 from .src.metrics import *
 
 def train(
@@ -33,14 +29,12 @@ def train(
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    log_dir = Path(exp_dir) / f"{model_name}_{datetime.now().strftime('%m%d_%H%M%S')}"
-
     model = load_model(model_name, **kwargs)
     model = model.to(device)
     model.train()
 
-    data_sources = ["data/dataset1", "data/dataset2"]
-    train_data, val_data, test_data = load_data(dataset_paths=data_sources, 
+    data_sources = ["csml_final/data/dataset1", "csml_final/data/dataset2"]
+    train_data, val_data = load_training_data(dataset_paths=data_sources, 
     shuffle=True, batch_size=batch_size, num_workers=0, transform_pipeline='aug')
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)

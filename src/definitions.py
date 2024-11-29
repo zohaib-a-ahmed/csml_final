@@ -1,5 +1,5 @@
 import torch
-from torchvision.models import vit_b_16
+from torchvision.models import densenet121, resnet50
 from .components import *
 
 
@@ -33,6 +33,7 @@ class LinearExample(torch.nn.Module):
         return self.linear(x)
 
 class ConvolutionalNN(nn.Module):
+
     def __init__(self, num_classes: int = 4):
         super(ConvolutionalNN, self).__init__()
         """
@@ -81,32 +82,47 @@ class ConvolutionalNN(nn.Module):
         x = self.fc(x)
 
         return x
-
-class VisionTransformer(nn.Module):
+    
+class DenseNetModel(nn.Module):
     def __init__(self, num_classes: int = 4):
-        super().__init__()
+        super(DenseNetModel, self).__init__()
         """
-        A vision transformer network for image classification.
+        A pretrained DenseNet model for image classification.
 
         Args:
             num_classes: number of output class probabilities
         """
-        # Load a pretrained Vision Transformer model
-        self.model = vit_b_16()  # Load pretrained weights
-        
-        # Modify the classifier head to match the number of classes
-        self.model.heads.head = nn.Linear(self.model.heads.head.in_features, num_classes)
+        self.model = densenet121(pretrained=True)
+        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)  
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: tensor (b, 1, h, w) image
+            x: tensor (b, 3, h, w) image
 
         Returns:
             tensor (b, num_classes) classifications
         """
-        # Since the pretrained model expects 3 channels, we need to repeat the grayscale channel
-        x = x.repeat(1, 3, 1, 1)  # Convert (b, 1, h, w) to (b, 3, h, w)
-        
-        # Forward pass through the model
+        return self.model(x)
+    
+class ResNetModel(nn.Module):
+    def __init__(self, num_classes: int = 4):
+        super(ResNetModel, self).__init__()
+        """
+        A pretrained ResNet model for image classification.
+
+        Args:
+            num_classes: number of output class probabilities
+        """
+        self.model = resnet50(pretrained=True)
+        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)  
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: tensor (b, 3, h, w) image
+
+        Returns:
+            tensor (b, num_classes) classifications
+        """
         return self.model(x)
