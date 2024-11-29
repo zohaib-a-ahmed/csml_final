@@ -1,13 +1,15 @@
 import torch
 from pathlib import Path
-from .definitions import ConvolutionalNN, LinearExample, DenseNetModel, ResNetModel
+from .definitions import ConvolutionalNN, LinearExample, DenseNetModel, ResNetModel, DenseNetRawModel, ResNetRawModel
 
 DIR = Path(__file__).resolve()
 MODEL_FACTORY = {
     "cnn": ConvolutionalNN,
     "example": LinearExample,
     "dense": DenseNetModel,
-    "res": ResNetModel
+    "res": ResNetModel,
+    "dense_raw": DenseNetRawModel,
+    "res_raw": ResNetRawModel
 }
 
 def load_model(
