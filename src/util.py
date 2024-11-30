@@ -3,6 +3,7 @@ from pathlib import Path
 from .definitions import ConvolutionalNN, LinearExample, DenseNetModel, ResNetModel, DenseNetRawModel, ResNetRawModel, VGG16Model, VGG16RawModel
 
 DIR = Path(__file__).resolve()
+DIR2 = Path("csml_final/models")
 MODEL_FACTORY = {
     "cnn": ConvolutionalNN,
     "example": LinearExample,
@@ -25,7 +26,8 @@ def load_model(
     m = MODEL_FACTORY[model_name](**model_kwargs)
 
     if with_weights:
-        model_path = DIR / f"{model_name}.th"
+        model_path = DIR2 / f"{model_name}.th"
+        print(model_path)
         assert model_path.exists(), f"{model_path.name} not found"
 
         try:
